@@ -154,4 +154,4 @@ This project is released under the MIT License. See `LICENSE` for details.
 
 ## Author
 
-**rhaularj**
+**kabilanpichaipilaai** **rhaularj** 
