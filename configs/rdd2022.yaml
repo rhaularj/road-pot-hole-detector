@@ -1,0 +1,9 @@
+path: data/yolo
+train: images/train
+val: images/val
+
+names:
+  0: D00   # longitudinal crack
+  1: D10   # transverse crack
+  2: D20   # alligator crack
+  3: D40   # pothole

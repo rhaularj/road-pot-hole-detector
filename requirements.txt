@@ -1,0 +1,38 @@
+# Core
+torch>=2.1
+torchvision>=0.16
+ultralytics>=8.3
+numpy
+pandas
+pyyaml
+tqdm
+scikit-learn
+
+# Vision / augmentation
+opencv-python
+albumentations
+pillow
+
+# Evaluation and ensembling
+pycocotools
+ensemble-boxes
+
+# Plotting and analysis
+matplotlib
+seaborn
+grad-cam
+
+# Experiment tracking and tuning
+wandb
+optuna
+
+# Demo
+gradio
+
+# Export / deployment (optional)
+onnx
+onnxruntime
+
+# Extensions (optional)
+folium
+jupyter
