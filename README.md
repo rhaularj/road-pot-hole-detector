@@ -162,34 +162,41 @@ YOLO and RT-DETR checkpoints are saved under `runs/detect/<name>/weights/`. Fast
 writes `best.pt` (best val mAP@0.5), `last.pt` (resumable) and `model.pt` under
 `runs/faster_rcnn/<name>/`, and logs per-epoch val P / R / F1 / mAP@0.5 to `metrics.csv`.
 
-### 3b. Train on Google Colab
+### 3b. Train in the cloud: Kaggle (recommended) or Google Colab
 
 `notebooks/colab/` has one ready-to-run notebook per model: `train_yolov8s.ipynb`,
 `train_yolov8m.ipynb`, `train_rtdetr_l.ipynb` and `train_faster_rcnn.ipynb`. Each one is
 self-contained. All of its code (data preparation, metrics, training, evaluation) is in its own
-cells, so it doesn't need this repository or any `.py` files.
+cells, so no `.py` files are needed. It detects whether it runs on Kaggle or Colab.
 
-1. Open the notebook in Colab (*File → Upload notebook*) and pick *Runtime → Change runtime type → T4 GPU*.
-2. In the **Settings** cell, point it at the data. Use **one** of these:
-   - `KAGGLE_DATASET = "owner/slug"`: the Kaggle dataset RDD2022 was downloaded from. It
-     downloads straight into Colab, which is the fastest option. For a private dataset, add
-     `KAGGLE_USERNAME` / `KAGGLE_KEY` as Colab secrets.
-   - `DATA_PATH`: a `.zip` or folder on Google Drive with `train/ val/ test/`, each holding
-     `images/` and `labels/`.
-3. *Runtime → Run all*.
+**Kaggle** gives 30 free GPU hours per week and runs committed notebooks in the background:
 
-The notebook fixes the data on the fly. Class 4 (pothole) is remapped to D40, "other
-corruption" is dropped, and images are re-split into 50-frame blocks with seed 42, the same
-split as the local runs. Data that is already fixed is used unchanged.
+1. *Create → New Notebook*, then *File → Import Notebook* (GitHub URL or upload).
+2. In *Settings*, choose *Accelerator* **GPU T4 x2** (not P100, which current PyTorch no longer
+   supports) and turn **Internet on**. Internet needs a phone-verified account.
+3. Optional: *Add Input* → `aliabdelmenam/rdd-2022`. Otherwise the notebook downloads it.
+4. *Save Version → Save & Run All (Commit)*. Outputs go to the version's *Output* tab.
+5. A run longer than one 12 h session stops cleanly at `MAX_HOURS` (10.5 h) and prints
+   "Paused". To continue, add the previous version's output as an input (*Add Input → Your Work
+   → Notebook Output*) and commit again. The checkpoint is picked up automatically.
 
-Checkpoints go to Google Drive (`DRIVE_DIR`, default `MyDrive/road-damage`) after every epoch.
-Training stops cleanly after `MAX_HOURS`, so after a disconnect or time limit you just *Run all*
-again and it continues. When training is done, the notebook tunes the confidence threshold on
-val, reports test F1 at that threshold, and appends both rows to `results/metrics.csv` on Drive.
-All four notebooks share that file, so it ends up holding the comparison table.
+**Colab:** pick a T4 runtime and *Run all*. Checkpoints go to Google Drive (`DRIVE_DIR`), and
+*Run all* again after a disconnect continues the run. The free Colab GPU allowance is only a few
+hours per day.
 
-Rough times on a free T4, 30 epochs: YOLOv8s ~3–4 h, YOLOv8m ~6–8 h, RT-DETR-L ~10–13 h,
-Faster R-CNN ~13–18 h. The last two take two Colab sessions.
+Either way, the notebook fixes the data on the fly. Class 4 (pothole) is remapped to D40,
+"other corruption" is dropped, and images are re-split into 50-frame blocks with seed 42, the
+same split as the local runs. When training is done, the notebook tunes the confidence threshold
+on val, reports test F1 at that threshold, and appends both rows to `results/metrics.csv`.
+
+Approximate times on a T4, 30 epochs (YOLOv8s measured on Colab, the others estimated):
+
+| Model | Per epoch | 30 epochs |
+|-------|-----------|-----------|
+| YOLOv8s | ~12 min | ~6 h |
+| YOLOv8m | ~22 min | ~11 h |
+| RT-DETR-L | ~32 min | ~16 h (2 sessions) |
+| Faster R-CNN | ~40 min | ~20 h (2 sessions) |
 
 To turn other scripts into notebooks, use `python scripts/py_to_ipynb.py scripts/evaluate.py`.
 Converted copies of the evaluation, export, ensembling and data-prep scripts are in
