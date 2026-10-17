@@ -162,45 +162,38 @@ YOLO and RT-DETR checkpoints are saved under `runs/detect/<name>/weights/`. Fast
 writes `best.pt` (best val mAP@0.5), `last.pt` (resumable) and `model.pt` under
 `runs/faster_rcnn/<name>/`, and logs per-epoch val P / R / F1 / mAP@0.5 to `metrics.csv`.
 
-### 3b. Train in the cloud (Kaggle / Colab notebooks)
+### 3b. Train on Google Colab
 
-`notebooks/cloud/` has one self-contained notebook per model: `train_yolov8s.ipynb`,
-`train_yolov8m.ipynb`, `train_rtdetr_l.ipynb` and `train_faster_rcnn.ipynb`. Each notebook
-writes the project scripts itself with `%%writefile`, so nothing needs to be cloned. It then
-finds the dataset input and fixes it on the fly (class remap + block split; data that is
-already fixed is used as-is). It trains, plots the curves, picks the confidence threshold
-on val, reports test F1 at that threshold, and saves everything to the persistent output
-folder. Batch sizes are set for a 16 GB GPU (T4 / P100) with mixed precision. The intro
-cell of each notebook has step-by-step Kaggle and Colab instructions.
+`notebooks/colab/` has one ready-to-run notebook per model: `train_yolov8s.ipynb`,
+`train_yolov8m.ipynb`, `train_rtdetr_l.ipynb` and `train_faster_rcnn.ipynb`. Each one is
+self-contained. All of its code (data preparation, metrics, training, evaluation) is in its own
+cells, so it doesn't need this repository or any `.py` files.
 
-Cloud sessions have time limits, so training stops cleanly after `MAX_HOURS` (default
-10.5 h). Run the notebook again to continue:
+1. Open the notebook in Colab (*File → Upload notebook*) and pick *Runtime → Change runtime type → T4 GPU*.
+2. In the **Settings** cell, point it at the data. Use **one** of these:
+   - `KAGGLE_DATASET = "owner/slug"`: the Kaggle dataset RDD2022 was downloaded from. It
+     downloads straight into Colab, which is the fastest option. For a private dataset, add
+     `KAGGLE_USERNAME` / `KAGGLE_KEY` as Colab secrets.
+   - `DATA_PATH`: a `.zip` or folder on Google Drive with `train/ val/ test/`, each holding
+     `images/` and `labels/`.
+3. *Runtime → Run all*.
 
-- **Kaggle:** add the previous version's output as an input and set `RESUME_FROM`.
-- **Colab:** set `DRIVE_DIR` so runs are saved on Drive, then *Run all* again; it resumes
-  automatically.
+The notebook fixes the data on the fly. Class 4 (pothole) is remapped to D40, "other
+corruption" is dropped, and images are re-split into 50-frame blocks with seed 42, the same
+split as the local runs. Data that is already fixed is used unchanged.
 
-The scripts support the same thing directly. `train.py --max-hours H` writes
-`weights/resume.pt` and continues with `--resume`. `train_faster_rcnn.py --max-hours H`
-continues from `last.pt`. `train_faster_rcnn.py --eval-weights best.pt --split test
---fixed-conf C` evaluates Faster R-CNN like `evaluate.py` does for YOLO.
+Checkpoints go to Google Drive (`DRIVE_DIR`, default `MyDrive/road-damage`) after every epoch.
+Training stops cleanly after `MAX_HOURS`, so after a disconnect or time limit you just *Run all*
+again and it continues. When training is done, the notebook tunes the confidence threshold on
+val, reports test F1 at that threshold, and appends both rows to `results/metrics.csv` on Drive.
+All four notebooks share that file, so it ends up holding the comparison table.
 
-The notebooks are generated from `scripts/`. After changing a script, rebuild them:
+Rough times on a free T4, 30 epochs: YOLOv8s ~3–4 h, YOLOv8m ~6–8 h, RT-DETR-L ~10–13 h,
+Faster R-CNN ~13–18 h. The last two take two Colab sessions.
 
-```bash
-python scripts/build_cloud_notebooks.py
-```
-
-To turn any other script into a notebook:
-
-```bash
-python scripts/py_to_ipynb.py scripts/evaluate.py --args "--weights best.pt --split test"
-```
-
-The converter writes local imports such as `utils.py` with `%%writefile`. It turns the
-`__main__` block into an editable `ARGS` cell, and it honours `# %%` cell markers if the
-script has them. Converted copies of the evaluation, export, ensembling and data-prep
-scripts are in `notebooks/converted/`.
+To turn other scripts into notebooks, use `python scripts/py_to_ipynb.py scripts/evaluate.py`.
+Converted copies of the evaluation, export, ensembling and data-prep scripts are in
+`notebooks/converted/`.
 
 ### 4. Evaluate
 
