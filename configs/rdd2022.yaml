@@ -1,6 +1,9 @@
-path: data/yolo
-train: images/train
-val: images/val
+# Prepared layout data/{train,val,test}/{images,labels}, fixed with scripts/fix_prepared_data.py
+# (classes remapped to the 4 below, split by 50-frame blocks per country).
+path: data/train
+train: images
+val: ../val/images
+test: ../test/images
 
 names:
   0: D00   # longitudinal crack
