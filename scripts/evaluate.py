@@ -92,7 +92,14 @@ def main():
 
     evaluator = DetectionEvaluator(nc, iou_thr=0.5)
     timings = []
-    stream = model.predict(source=[str(p) for p in images], imgsz=args.imgsz, conf=args.conf,
+    # Never pass a Python list: Ultralytics decodes every listed image into memory up front, which runs
+    # out of RAM on a full split. A folder or a .txt of paths is read lazily, batch by batch.
+    source = str(img_dir)
+    if args.max_images:
+        source = PROJECT_ROOT / "runs" / "_resolved" / f"{name}_{args.split}_images.txt"
+        source.write_text("\n".join(str(p) for p in images) + "\n", encoding="utf-8")
+        source = str(source)
+    stream = model.predict(source=source, imgsz=args.imgsz, conf=args.conf,
                            iou=args.nms_iou, device=args.device, batch=args.batch, stream=True, verbose=False)
     for r in tqdm(stream, total=len(images), desc=f"Predicting {args.split}"):
         gt_cls, gt_boxes = read_yolo_labels(lbl_dir / f"{Path(r.path).stem}.txt")
