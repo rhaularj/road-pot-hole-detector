@@ -59,8 +59,8 @@ and F1 is reported on test at exactly that threshold; IoU 0.5 for F1/mAP@0.5. Se
 | Model | Trained on | Conf (val-tuned) | Precision | Recall | F1 | mAP@0.5 | mAP@0.5:0.95 | FPS |
 |-------|------------|-----------------:|----------:|-------:|---:|--------:|-------------:|----:|
 | YOLOv8s | local GTX 1650 Ti (batch 8, FP32) | 0.20 | 0.604 | 0.536 | 0.568 | 0.566 | 0.276 | 57 (GTX 1650 Ti) |
-| YOLOv8m | Kaggle T4 (batch 16, AMP) | 0.25 | 0.647 | 0.542 | **0.590** | **0.599** | **0.303** | 42 (T4) |
-| RT-DETR-L | Kaggle T4 (batch 8, AMP) | training (~58 min/epoch on T4) | | | | | | |
+| YOLOv8m | Kaggle T4 (batch 16, AMP) | 0.25 | 0.647 | 0.542 | 0.590 | 0.599 | **0.303** | 42 (T4) |
+| RT-DETR-L | Kaggle T4 (batch 8, AMP) | 0.50 | 0.643 | 0.587 | **0.614** | **0.613** | 0.302 | 22 (T4) |
 | Faster R-CNN | Kaggle T4 (batch 8, AMP) | queued | | | | | | |
 
 Per-class AP@0.5 on test:
@@ -68,9 +68,13 @@ Per-class AP@0.5 on test:
 | Model | D00 longitudinal | D10 transverse | D20 alligator | D40 pothole |
 |-------|-----------------:|---------------:|--------------:|------------:|
 | YOLOv8s | 0.563 | 0.559 | 0.666 | 0.475 |
-| YOLOv8m | 0.592 | 0.603 | 0.692 | 0.509 |
+| YOLOv8m | 0.592 | 0.603 | **0.692** | 0.509 |
+| RT-DETR-L | **0.613** | **0.625** | 0.676 | **0.540** |
 
-Potholes (D40) are the hardest class for both models; alligator cracks (D20) the easiest.
+Potholes (D40) are the hardest class for every model; alligator cracks (D20) the easiest.
+RT-DETR-L gives the best F1 and mAP@0.5 (and the best pothole AP), at about half
+YOLOv8m's speed. RT-DETR-L trained in two Kaggle sessions (17 + 13 epochs, resumed from
+the saved checkpoint).
 FPS includes pre/post-processing and was measured on different GPUs, so it is not directly
 comparable between rows.
 
@@ -247,7 +251,7 @@ yolo detect predict model=runs/detect/train/weights/best.pt source=path/to/image
 
 - [ ] Literature review
 - [x] Data download, conversion and EDA (class remap + leak-free block split)
-- [ ] Baseline models (YOLOv8s and YOLOv8m done; RT-DETR-L training on Kaggle; Faster R-CNN next)
+- [ ] Baseline models (YOLOv8s, YOLOv8m and RT-DETR-L done; Faster R-CNN next)
 - [ ] Ablation experiments
 - [ ] Ensembling and TTA
 - [ ] Error analysis
