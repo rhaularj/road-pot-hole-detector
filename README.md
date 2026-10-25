@@ -94,7 +94,7 @@ road-pot-hole-detector/
 ├── scripts/             # data conversion, training, evaluation
 ├── configs/             # dataset and training configs
 ├── runs/                # training outputs (not tracked in git)
-├── app/                 # demo app (Gradio / Streamlit)
+├── app/                 # Gradio demo app (detect + compare models) and example images
 ├── requirements.txt
 └── README.md
 ```
@@ -238,6 +238,45 @@ yolo detect val data=configs/rdd2022.yaml model=runs/detect/train/weights/best.p
 yolo detect predict model=runs/detect/train/weights/best.pt source=path/to/images
 ```
 
+### 6. Demo app
+
+`app/demo.py` is a Gradio app with two tabs.
+
+- **Detect** runs the best model, RT-DETR-L, on an uploaded road image (or a webcam or clipboard
+  image). It draws the detected potholes and cracks, counts the potholes, and lists every box with
+  its confidence. The confidence slider starts at 0.50, the threshold tuned on val, and you can
+  hide damage types.
+- **Compare models** runs RT-DETR-L, YOLOv8m and Faster R-CNN side by side on the same image. Each
+  model uses its own val-tuned threshold (0.50 / 0.25 / 0.75), or you can set one shared threshold.
+  A table shows the potholes and other damage each model found, its inference time, and its
+  test-split F1, mAP@0.5 and pothole AP. For the example images it also shows the ground truth and
+  how many labelled boxes each model matched at IoU ≥ 0.5.
+
+Four test-split images are included as examples, with their labels. They were chosen because
+RT-DETR-L finds their potholes, so they favour it. Use the test metrics above to judge the models;
+a single image only shows how they behave.
+
+The trained weights are not in git. Download `best.pt` from each Kaggle notebook's output and save
+it under `weights/`:
+
+| Model | Kaggle output file | Save as |
+|-------|--------------------|---------|
+| RT-DETR-L (required) | `runs/rtdetr_l_640_s42/weights/best.pt` (66 MB) | `weights/rtdetr_l_rdd2022.pt` |
+| YOLOv8m (compare tab) | `runs/yolov8m_640_s42/weights/best.pt` (52 MB) | `weights/yolov8m_rdd2022.pt` |
+| Faster R-CNN (compare tab) | `runs/faster_rcnn_640_s42/best.pt` (166 MB) | `weights/faster_rcnn_rdd2022.pt` |
+
+The compare tab shows the models whose weights are present. Then:
+
+```bash
+pip install gradio
+python app/demo.py              # open http://127.0.0.1:7860
+```
+
+`--device cpu` runs without a GPU (slower). `--share` creates a temporary public link. On a GTX
+1650 Ti one image takes about 45 ms with YOLOv8m, 80 ms with RT-DETR-L and 115 ms with Faster R-CNN.
+Detection quality varies by image: on some test images RT-DETR-L finds potholes only below 0.50
+confidence, so lower the slider if you expect damage it does not show.
+
 ## Experiments planned
 
 - **Data:** image size (640 / 800 / 1024), augmentation, class imbalance handling, multi-country vs. single-country training
@@ -262,7 +301,7 @@ yolo detect predict model=runs/detect/train/weights/best.pt source=path/to/image
 - [ ] Ablation experiments
 - [ ] Ensembling and TTA
 - [ ] Error analysis
-- [ ] Demo app
+- [x] Demo app (image upload with RT-DETR-L, side-by-side model comparison)
 - [ ] Final report and slides
 
 ## References
