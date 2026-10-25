@@ -94,7 +94,7 @@ road-pot-hole-detector/
 ├── scripts/             # data conversion, training, evaluation
 ├── configs/             # dataset and training configs
 ├── runs/                # training outputs (not tracked in git)
-├── app/                 # demo app (Gradio / Streamlit)
+├── app/                 # Gradio demo app (demo.py) and example images
 ├── requirements.txt
 └── README.md
 ```
@@ -238,6 +238,26 @@ yolo detect val data=configs/rdd2022.yaml model=runs/detect/train/weights/best.p
 yolo detect predict model=runs/detect/train/weights/best.pt source=path/to/images
 ```
 
+### 6. Demo app
+
+`app/demo.py` is a Gradio app that runs the best model, RT-DETR-L, on an uploaded road image (or
+a webcam or clipboard image). It draws the detected potholes and cracks, counts the potholes, and
+lists every box with its confidence. The confidence slider starts at 0.50, the threshold tuned on
+val, and you can hide damage types. Four test-split images are included as examples.
+
+The trained weights are not in git. Download `best.pt` from the Kaggle notebook output
+(`runs/rtdetr_l_640_s42/weights/best.pt`, 66 MB) and save it as `weights/rtdetr_l_rdd2022.pt`, or
+pass `--weights`. Then:
+
+```bash
+pip install gradio
+python app/demo.py              # open http://127.0.0.1:7860
+```
+
+`--device cpu` runs without a GPU (slower). `--share` creates a temporary public link. Detection
+quality varies by image: on some test images the model finds potholes only below 0.50 confidence,
+so lower the slider if you expect damage it does not show.
+
 ## Experiments planned
 
 - **Data:** image size (640 / 800 / 1024), augmentation, class imbalance handling, multi-country vs. single-country training
@@ -262,7 +282,7 @@ yolo detect predict model=runs/detect/train/weights/best.pt source=path/to/image
 - [ ] Ablation experiments
 - [ ] Ensembling and TTA
 - [ ] Error analysis
-- [ ] Demo app
+- [x] Demo app (image upload, RT-DETR-L)
 - [ ] Final report and slides
 
 ## References
