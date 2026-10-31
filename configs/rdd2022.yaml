@@ -1,0 +1,12 @@
+# Prepared layout data/{train,val,test}/{images,labels}, fixed with scripts/fix_prepared_data.py
+# (classes remapped to the 4 below, split by 50-frame blocks per country).
+path: data/train
+train: images
+val: ../val/images
+test: ../test/images
+
+names:
+  0: D00   # longitudinal crack
+  1: D10   # transverse crack
+  2: D20   # alligator crack
+  3: D40   # pothole
